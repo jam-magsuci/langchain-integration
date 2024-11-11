@@ -97,9 +97,7 @@ const renderMessageContent = (message: Message, messageIndex: number) => {
         {parts.map((part, index) => {
           if (part.type === 'text' && part.content) {
             return (
-              <div key={index} className="text-left break-words">
-                {part.content}
-              </div>
+              <div key={index} className="text-left break-words" dangerouslySetInnerHTML={{ __html: part.content }} />
             );
           } else if (part.type === 'code') {
             const codeIndex = `${messageIndex}-${index}`; // Create a unique key for each code block
