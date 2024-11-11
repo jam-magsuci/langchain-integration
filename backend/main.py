@@ -24,11 +24,21 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: str
 
+# Define system message and context
+SYSTEM_MESSAGE = """You are a helpful AI assistant focused on providing clear and accurate information. 
+Please be concise and make a bullet point list of the answer. Maintain new lines on your response, use <br> tags."""
+
+def format_prompt(question: str) -> str:
+    return f"""System: {SYSTEM_MESSAGE}<br><br>
+User Question: {question}<br><br>
+Assistant: Let me help you with that."""
+
 # Initialize HuggingFace model
 def init_model():
     try:
         llm = HuggingFaceHub(
-            repo_id="google/flan-t5-base",
+            # repo_id="google/flan-t5-base",
+            repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
             huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_TOKEN"),
             model_kwargs={"temperature": 0.7, "max_length": 512}
         )
@@ -44,8 +54,11 @@ async def chat(request: ChatRequest):
         if not llm:
             raise HTTPException(status_code=500, detail="Failed to initialize language model")
         
-        # Generate response
-        response = llm.predict(request.question)
+        # Format the prompt with system message and context
+        formatted_prompt = format_prompt(request.question)
+        
+        # Generate response with the formatted prompt
+        response = llm.predict(formatted_prompt)
         
         return {
             "response": response,
