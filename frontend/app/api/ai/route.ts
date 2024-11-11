@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     };
 
     // Send a POST request to the external API
-    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/query`, {
+    const apiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

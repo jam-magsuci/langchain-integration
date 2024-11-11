@@ -49,7 +49,10 @@ const ChatPage = () => {
       const data = await response.json();
       // console.log("data: ", data);
 
-      const aiMessage = { role: "ai", content: data.response };
+      const aiMessage = { 
+        role: "ai", 
+        content: data.response  // The FastAPI endpoint returns { response, conversation_id }
+      };
       const finalMessages = [...updatedMessages, aiMessage];
       setStoredMessages(finalMessages); // Update stored messages with AI response
 
