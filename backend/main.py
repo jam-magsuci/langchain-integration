@@ -26,12 +26,12 @@ class ChatRequest(BaseModel):
 
 # Define system message and context
 SYSTEM_MESSAGE = """You are a helpful AI assistant focused on providing clear and accurate information. 
-Please be concise and make a bullet point list of the answer. Maintain new lines on your response, use <br> tags."""
+Please be concise and make a bullet point list of the answer and end each bullet point with a <br><br> tag."""
 
 def format_prompt(question: str) -> str:
     return f"""System: {SYSTEM_MESSAGE}<br><br>
 User Question: {question}<br><br>
-Assistant: Let me help you with that."""
+Assistant: Let me help you with that.<br><br>"""
 
 # Initialize HuggingFace model
 def init_model():
