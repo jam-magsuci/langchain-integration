@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from langchain_community.llms import HuggingFaceHub
 from dotenv import load_dotenv
 import os
+from typing import Dict, Tuple
+import time
 
 # Load environment variables
 load_dotenv()
@@ -47,22 +49,46 @@ def init_model():
         print(f"Error initializing model: {e}")
         return None
 
+# Add cache configuration
+CACHE_DURATION = 3600  # Cache duration in seconds (1 hour)
+response_cache: Dict[str, Tuple[str, float]] = {}  # {question: (response, timestamp)}
+
+def get_cached_response(question: str) -> str | None:
+    if question in response_cache:
+        response, timestamp = response_cache[question]
+        if time.time() - timestamp < CACHE_DURATION:
+            return response
+        else:
+            # Remove expired cache entry
+            del response_cache[question]
+    return None
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     try:
+        # Check cache first
+        cached_response = get_cached_response(request.question)
+        if cached_response:
+            return {
+                "response": cached_response,
+                "conversation_id": request.conversation_id,
+                "cached": True
+            }
+
         llm = init_model()
         if not llm:
             raise HTTPException(status_code=500, detail="Failed to initialize language model")
         
-        # Format the prompt with system message and context
         formatted_prompt = format_prompt(request.question)
-        
-        # Generate response with the formatted prompt
         response = llm.predict(formatted_prompt)
+        
+        # Store in cache
+        response_cache[request.question] = (response, time.time())
         
         return {
             "response": response,
-            "conversation_id": request.conversation_id
+            "conversation_id": request.conversation_id,
+            "cached": False
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
